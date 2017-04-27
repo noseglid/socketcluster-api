@@ -1,0 +1,22 @@
+{
+  "name": "socketcluster-api",
+  "version": "0.1.0",
+  "description": "REST API over SocketCluster's websocket",
+  "main": "src/index.js",
+  "repository": "https://github.com/noseglid/socketcluster-api",
+  "author": "Alexander Olsson <noseglid@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "debug": "^2.6.5"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^3.3.0"
+  },
+  "engines": {
+    "node": "^6.5.0"
+  }
+}
