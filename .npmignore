@@ -1,0 +1,5 @@
+/.travis.yml
+/test
+/.eslintrc.yml
+/.gitignore
+/yarn.lock
