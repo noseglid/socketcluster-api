@@ -1,7 +1,7 @@
 {
   "name": "socketcluster-api",
   "version": "0.1.0",
-  "description": "REST API over SocketCluster's websocket",
+  "description": "RESTisha API over SocketCluster's websocket",
   "main": "src/index.js",
   "repository": "https://github.com/noseglid/socketcluster-api",
   "author": "Alexander Olsson <noseglid@gmail.com>",
