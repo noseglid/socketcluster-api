@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package socketclusterapi;
+
+message ApiCall {
+  uint32 cid = 1;
+  string event = 2;
+  message Data {
+    string resource = 1;
+    string dataType = 2;
+    bytes buffer = 3;
+  }
+
+  Data data = 3;
+}
+
+message ApiResponse {
+  uint32 rid = 1;
+
+  message Data {
+    string dataType = 1;
+    bytes buffer = 2;
+  };
+
+  Data data = 2;
+}

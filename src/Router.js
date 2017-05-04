@@ -1,9 +1,10 @@
 const debug = require('debug')('socketcluster-api:Router');
-const dispatcher = require('./dispatcher');
+const { serialize, deserialize } = require('./protobufCodec');
 
 class Router {
-  constructor() {
+  constructor(pbRoot) {
     this._routes = [];
+    this._pbRoot = pbRoot;
   }
 
   use(path, handler) {
@@ -45,24 +46,20 @@ class Router {
     });
   }
 
-  register(scSocket, absolutePath = '') {
-    this.traverse((fullPath, handler) => {
-      debug(`Registering an event listener on path '%s'`, fullPath);
-      scSocket.on(fullPath, dispatcher.bind(null, scSocket, fullPath, handler));
-    });
+  find(route) {
+    return this._routes.find(([ path, handler ]) => path === route);
   }
 
-  get describe() {
-    const api = [];
-    this.traverse((fullPath, handler) => {
-      api.push({
-        path: fullPath,
-        description: handler.description || 'No description.',
-        props: handler.props
+  register(scSocket, absolutePath = '') {
+    scSocket.on('#api', (data, callback) => {
+      const plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
+
+      const [ , handler ] = this.find(data.resource);
+      handler(plain, (dataType, data) => {
+        const buffer = serialize(this._pbRoot.lookupType(dataType), data);
+        callback(null, { dataType, buffer });
       });
     });
-
-    return api;
   }
 }
 

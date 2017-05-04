@@ -1,20 +1,30 @@
 {
   "name": "socketcluster-api",
   "version": "0.1.1",
-  "description": "RESTisha API over SocketCluster's websocket",
+  "description": "API over SocketCluster's websocket",
   "main": "src/index.js",
   "repository": "https://github.com/noseglid/socketcluster-api",
   "author": "Alexander Olsson <noseglid@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "client:dev": "NODE_ENV=development webpack-dev-server --config example/webpack.config.js",
+    "server:dev": "NODE_ENV=development DEBUG=* supervisor -n error example/server.js",
     "test": "mocha"
   },
   "dependencies": {
-    "debug": "^2.6.5"
+    "debug": "^2.6.6",
+    "protobufjs": "^6.7.3"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
-    "mocha": "^3.3.0"
+    "mocha": "^3.3.0",
+    "raw-loader": "^0.5.1",
+    "sc-codec-protobuf": "^0.2.0",
+    "socketcluster-client": "^5.3.1",
+    "socketcluster-server": "^5.10.2",
+    "supervisor": "^0.12.0",
+    "webpack": "^2.4.1",
+    "webpack-dev-server": "^2.4.5"
   },
   "engines": {
     "node": "^6.5.0"

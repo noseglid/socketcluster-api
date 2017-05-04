@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package app;
+
+message SomeMessage {
+  string a = 1;
+  string b = 2;
+}
+
+message SomeResponse {
+  string c = 1;
+}
