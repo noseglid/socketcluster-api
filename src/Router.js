@@ -47,19 +47,51 @@ class Router {
   }
 
   find(route) {
-    return this._routes.find(([ path, handler ]) => path === route);
+    let resolved = false;
+    return new Promise((resolve, reject) => {
+      this.traverse((fullPath, handler) => {
+        if (!resolved && fullPath === route) {
+          resolved = true;
+          resolve(handler);
+        }
+      });
+
+      if (!resolved) {
+        reject();
+      }
+    });
   }
 
   register(scSocket, absolutePath = '') {
-    scSocket.on('#api', (data, callback) => {
-      const plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
+    scSocket.on('#api', this.handleEvent.bind(this));
+  }
 
-      const [ , handler ] = this.find(data.resource);
-      handler(plain, (dataType, data) => {
-        const buffer = serialize(this._pbRoot.lookupType(dataType), data);
-        callback(null, { dataType, buffer });
+  handleEvent(data, callback) {
+    const plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
+
+    this.find(data.resource)
+      .then(handler => handler(plain, (err, response) => {
+        if (err) {
+          const [ dataType, data ] = err;
+          const buffer = serialize(this._pbRoot.lookupType(dataType), data);
+          callback(null, { dataType: dataType, buffer, isError: true });
+        } else {
+          const [ dataType, data ] = response;
+          const buffer = serialize(this._pbRoot.lookupType(dataType), data);
+          callback(null, { dataType, buffer, isError: false });
+        }
+
+      }))
+      .catch(err => {
+        debug("No route for %o", data.resource);
+        const dataType = '.socketclusterapi.ApiError';
+        const buffer = serialize(this._pbRoot.lookupType(dataType), {
+          code: 404,
+          reason: 'Not Found',
+          description: `Requested route (${data.resource}) has no handler defined.`
+        });
+        callback(null, { dataType, buffer, isError: true });
       });
-    });
   }
 }
 

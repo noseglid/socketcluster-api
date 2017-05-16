@@ -15,7 +15,8 @@ const socket = socketCluster.connect({
 api.defineEndpoints(socket);
 
 setTimeout(() => {
-  socket.get('/resource', '.app.SomeMessage', { a: 'this is a', b: 'this is b' })
-    .then((data) => debug('server replied %o', data));
+  socket.get('/resource/asdf', [ '.app.SomeMessage', { a: 'this is a', b: 'this is b' } ])
+    .then((data) => debug('server replied %o', data))
+    .catch((err) => debug('got an error:', err));
 }, 1000);
 

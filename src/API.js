@@ -23,12 +23,22 @@ class API {
       configurable: false,
       enumerable: false,
       writable: false,
-      value: function(resource, dataType, plain) {
+      value: function(resource, [ dataType, plain ]) {
         return new Promise((resolve, reject) => {
           const buffer = serialize(self._pbRoot.lookupType(dataType), plain);
-          this.emit('#api', { resource, dataType, buffer}, (err, data) => {
-            if (err) return reject(err);
-            else return resolve(deserialize(self._pbRoot.lookupType(data.dataType), data.buffer));
+          this.emit('#api', { resource, dataType, buffer }, (err, data) => {
+            debug(err, data);
+            if (err) {
+              // This is *not* a socketclusterapi error. This is a lower level stack error.
+              return reject(err);
+            }
+
+            const clientData = deserialize(self._pbRoot.lookupType(data.dataType), data.buffer);
+            if (data.isError) {
+              reject(clientData);
+            } else {
+              resolve(clientData);
+            }
           });
         });
       }

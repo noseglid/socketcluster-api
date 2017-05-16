@@ -10,3 +10,8 @@ message SomeMessage {
 message SomeResponse {
   string c = 1;
 }
+
+message SomeError {
+  uint32 code = 1;
+  string message = 2;
+}

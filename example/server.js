@@ -8,10 +8,9 @@ const { API } = require('../src');
 const protobuf = fs.readFileSync(path.join(__dirname, 'messages.proto'), 'utf8');
 const app = new API([ protobuf ]);
 
-
-const router = app.router().use('/resource', (data, callback) => {
-  debug('got call for /resource', data);
-  callback('.app.SomeResponse', { c: 'i am a server' });
+const router = app.router().use('/resource/asdf', (data, callback) => {
+  debug('got call for /resource/asdf', data);
+  callback(null, [ '.app.SomeResponse', { c: 'something dark' } ]);
 });
 
 const port = process.env.PORT || 8000;
