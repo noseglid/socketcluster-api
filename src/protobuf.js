@@ -1,3 +1,4 @@
+module.exports = `
 syntax = "proto3";
 
 package socketclusterapi;
@@ -32,3 +33,4 @@ message ApiError {
   string reason = 2;
   string description = 3;
 }
+`;

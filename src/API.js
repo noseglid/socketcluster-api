@@ -1,7 +1,7 @@
 const debug = require('debug')('socketcluster-api:API');
 const Codec = require('sc-codec-protobuf');
 const Router = require('./Router');
-const apiEvent = require('./Event.proto');
+const protobuf = require('./protobuf');
 const { serialize, deserialize } = require('./protobufCodec');
 
 const { defineProperty } = Object;
@@ -28,7 +28,7 @@ const request = (scSocket, method, pbRoot) => (resource, [ dataType, plain ]) =>
 class API {
 
   constructor(protobufs) {
-    const { encode, decode, messageTypes, pbRoot } = Codec(...protobufs, apiEvent);
+    const { encode, decode, messageTypes, pbRoot } = Codec(...protobufs, protobuf);
     messageTypes.addEvent('#api', '.socketclusterapi.ApiCall', '.socketclusterapi.ApiResponse');
 
     this._pbRoot = pbRoot;
