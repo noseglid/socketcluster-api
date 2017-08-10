@@ -12,5 +12,5 @@ if (process.versions && process.versions.node && process.env.NODE_ENV === 'devel
 
 module.exports = {
   API: require('./API'),
-  Props: require('./Props')
+  Router: require('./Router')
 };

@@ -12,7 +12,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "debug": "^2.6.6",
+    "debug": "^3.0.0",
     "protobufjs": "^6.7.3"
   },
   "devDependencies": {
@@ -20,10 +20,10 @@
     "mocha": "^3.3.0",
     "raw-loader": "^0.5.1",
     "sc-codec-protobuf": "^0.2.0",
-    "socketcluster-client": "^5.3.1",
-    "socketcluster-server": "^5.10.2",
+    "socketcluster-client": "^6.4.0",
+    "socketcluster-server": "^6.3.0",
     "supervisor": "^0.12.0",
-    "webpack": "^2.4.1",
+    "webpack": "^3.5.3",
     "webpack-dev-server": "^2.4.5"
   },
   "engines": {

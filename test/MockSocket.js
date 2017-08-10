@@ -9,6 +9,7 @@ class DummySocket {
   }
 
   getByPath(search) {
+    console.log(this._listeners);
     return this._listeners.find(({ path, handler }) => path === search);
   }
 

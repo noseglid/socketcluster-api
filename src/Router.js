@@ -1,15 +1,41 @@
 const debug = require('debug')('socketcluster-api:Router');
 const { serialize, deserialize } = require('./protobufCodec');
 
+const NotFound = Symbol('404 NOT FOUND');
+
 class Router {
   constructor(pbRoot) {
     this._routes = [];
     this._pbRoot = pbRoot;
   }
 
-  use(path, handler) {
+  _verifyMethod(method) {
+    const allowedMethods = [ 'get', 'post', 'put', 'delete' ];
+    if (!allowedMethods.includes(method)) {
+      throw new Error(`Invalid method. Allowed methods are: ${allowedMethods.join(',')}`);
+    }
+  }
+
+  get(path, handler) {
+    return this.use('get', path, handler);
+  }
+
+  post(path, handler) {
+    return this.use('post', path, handler);
+  }
+
+  put(path, handler) {
+    return this.use('put', path, handler);
+  }
+
+  delete(path, handler) {
+    return this.use('delete', path, handler);
+  }
+
+  use(method, path, handler) {
+    this._verifyMethod(method);
+
     if (typeof path === 'function') {
-      // Passing function is first argument - default the path.
       handler = path;
       path = '/';
     }
@@ -27,70 +53,77 @@ class Router {
     let nextHandler = handler;
     if (parts.length > 1) {
       // This path contains multiple folders. Build `Router`s appropriately
-      nextHandler = new Router().use(parts.slice(1).join('/'), handler);
+      nextHandler = new Router(this._pbRoot).use(parts.slice(1).join('/'), handler);
     }
 
-    this._routes.push([ `/${parts[0]}`, nextHandler ]);
+    this._routes.push([ method, `/${parts[0]}`, nextHandler ]);
     return this;
   }
 
   traverse(callback, absolutePath = '') {
-    this._routes.forEach(([ path, handler ]) => {
+    this._routes.forEach(([ method, path, handler ]) => {
       const fullPath = `${absolutePath}${path}`;
 
       if (handler instanceof Router) {
         handler.traverse(callback, fullPath);
       } else {
-        callback(fullPath, handler);
+        callback(method, fullPath, handler);
       }
     });
   }
 
-  find(route) {
+  find(searchMethod, searchRoute) {
     let resolved = false;
     return new Promise((resolve, reject) => {
-      this.traverse((fullPath, handler) => {
-        if (!resolved && fullPath === route) {
+      this.traverse((method, fullPath, handler) => {
+        if (!resolved && searchMethod === method && fullPath === searchRoute) {
           resolved = true;
           resolve(handler);
         }
       });
 
       if (!resolved) {
-        reject();
+        reject(NotFound);
       }
     });
   }
 
-  register(scSocket, absolutePath = '') {
+  register(scSocket) {
     scSocket.on('#api', this.handleEvent.bind(this));
   }
 
   handleEvent(data, callback) {
     const plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
 
-    this.find(data.resource)
-      .then(handler => handler(plain, (err, response) => {
-        if (err) {
+    this.find(data.method, data.resource)
+      .then(handler => handler(plain))
+      .then(({ dataType, data }) => {
+        const buffer = serialize(this._pbRoot.lookupType(dataType), data);
+        callback(null, { dataType, buffer, isError: false });
+      })
+      .catch(err => {
+        const dataType = '.socketclusterapi.ApiError';
+        if (err === NotFound) {
+          debug("No route for %o", data.resource);
+          const buffer = serialize(this._pbRoot.lookupType(dataType), {
+            code: 404,
+            reason: 'Not Found',
+            description: `Requested resource '${data.method} ${data.resource}' has no handler defined.`
+          });
+          callback(null, { dataType, buffer, isError: true });
+        } else if ( err.dataType && typeof err.datType === 'string' && err.data) {
           const [ dataType, data ] = err;
           const buffer = serialize(this._pbRoot.lookupType(dataType), data);
           callback(null, { dataType: dataType, buffer, isError: true });
         } else {
-          const [ dataType, data ] = response;
-          const buffer = serialize(this._pbRoot.lookupType(dataType), data);
-          callback(null, { dataType, buffer, isError: false });
+          debug("Handler threw unexpectedly: %O", err);
+          const buffer = serialize(this._pbRoot.lookupType(dataType), {
+            code: 500,
+            reason: 'Internal Server Error',
+            description: `The resource threw an unexpected error.`
+          });
+          callback(null, { dataType, buffer, isError: true });
         }
-
-      }))
-      .catch(err => {
-        debug("No route for %o", data.resource);
-        const dataType = '.socketclusterapi.ApiError';
-        const buffer = serialize(this._pbRoot.lookupType(dataType), {
-          code: 404,
-          reason: 'Not Found',
-          description: `Requested route (${data.resource}) has no handler defined.`
-        });
-        callback(null, { dataType, buffer, isError: true });
       });
   }
 }

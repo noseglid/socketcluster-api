@@ -7,8 +7,9 @@ message ApiCall {
   string event = 2;
   message Data {
     string resource = 1;
-    string dataType = 2;
-    bytes buffer = 3;
+    string method = 2;
+    string dataType = 3;
+    bytes buffer = 4;
   }
 
   Data data = 3;

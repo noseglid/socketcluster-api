@@ -31,7 +31,7 @@ describe('Router', () => {
       mockSocket = new MockSocket();
     });
 
-    it('should register a handler (no path specified)', () => {
+    it.only('should register a handler (no path specified)', () => {
       router.use(() => {});
       router.register(mockSocket);
 

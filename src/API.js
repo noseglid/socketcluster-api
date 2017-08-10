@@ -6,6 +6,25 @@ const { serialize, deserialize } = require('./protobufCodec');
 
 const { defineProperty } = Object;
 
+const request = (scSocket, method, pbRoot) => (resource, [ dataType, plain ]) => new Promise((resolve, reject) => {
+  debug('request: %s %s', method, resource);
+  const buffer = serialize(pbRoot.lookupType(dataType), plain);
+  scSocket.emit('#api', { resource, method, dataType, buffer }, (err, data) => {
+    debug('response: %o', data);
+    if (err) {
+      // This is *not* a socketclusterapi error. This is a lower level stack error.
+      return reject(err);
+    }
+
+    const clientData = deserialize(pbRoot.lookupType(data.dataType), data.buffer);
+    if (data.isError) {
+      reject(clientData);
+    } else {
+      resolve(clientData);
+    }
+  });
+});
+
 class API {
 
   constructor(protobufs) {
@@ -18,30 +37,32 @@ class API {
   }
 
   defineEndpoints(scSocket) {
-    const self = this;
     defineProperty(scSocket, 'get', {
       configurable: false,
       enumerable: false,
       writable: false,
-      value: function(resource, [ dataType, plain ]) {
-        return new Promise((resolve, reject) => {
-          const buffer = serialize(self._pbRoot.lookupType(dataType), plain);
-          this.emit('#api', { resource, dataType, buffer }, (err, data) => {
-            debug(err, data);
-            if (err) {
-              // This is *not* a socketclusterapi error. This is a lower level stack error.
-              return reject(err);
-            }
+      value: request(scSocket, 'get', this._pbRoot)
+    });
 
-            const clientData = deserialize(self._pbRoot.lookupType(data.dataType), data.buffer);
-            if (data.isError) {
-              reject(clientData);
-            } else {
-              resolve(clientData);
-            }
-          });
-        });
-      }
+    defineProperty(scSocket, 'post', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: request(scSocket, 'post', this._pbRoot)
+    });
+
+    defineProperty(scSocket, 'put', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: request(scSocket, 'put', this._pbRoot)
+    });
+
+    defineProperty(scSocket, 'delete', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: request(scSocket, 'delete', this._pbRoot)
     });
   }
 
