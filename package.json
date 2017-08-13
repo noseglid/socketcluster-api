@@ -9,15 +9,18 @@
   "scripts": {
     "client:dev": "NODE_ENV=development webpack-dev-server --config example/webpack.config.js",
     "server:dev": "NODE_ENV=development DEBUG=* supervisor -n error example/server.js",
-    "test": "mocha"
+    "test": "mocha",
+    "test:coverage": "nyc --reporter=html --reporter=text mocha"
   },
   "dependencies": {
-    "chai": "^4.1.1",
     "debug": "^3.0.0",
     "protobufjs": "^6.7.3"
   },
   "devDependencies": {
+    "chai": "^4.1.1",
+    "istanbul": "^0.4.5",
     "mocha": "^3.3.0",
+    "nyc": "^11.1.0",
     "raw-loader": "^0.5.1",
     "sc-codec-protobuf": "^0.2.0",
     "socketcluster-client": "^6.4.0",
@@ -27,6 +30,6 @@
     "webpack-dev-server": "^2.4.5"
   },
   "engines": {
-    "node": "^6.5.0"
+    "node": "^7.6.0"
   }
 }
