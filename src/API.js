@@ -27,7 +27,7 @@ const request = (scSocket, method, pbRoot) => (resource, [ dataType, plain ]) =>
 
 class API {
 
-  constructor(protobufs) {
+  constructor(protobufs = []) {
     const { encode, decode, messageTypes, pbRoot } = Codec(...protobufs, protobuf);
     messageTypes.addEvent('#api', '.socketclusterapi.ApiCall', '.socketclusterapi.ApiResponse');
 

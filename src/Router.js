@@ -53,7 +53,7 @@ class Router {
     let nextHandler = handler;
     if (parts.length > 1) {
       // This path contains multiple folders. Build `Router`s appropriately
-      nextHandler = new Router(this._pbRoot).use(parts.slice(1).join('/'), handler);
+      nextHandler = new Router(this._pbRoot).use(method, parts.slice(1).join('/'), handler);
     }
 
     this._routes.push([ method, `/${parts[0]}`, nextHandler ]);
@@ -72,7 +72,7 @@ class Router {
     });
   }
 
-  find(searchMethod, searchRoute) {
+  _find(searchMethod, searchRoute) {
     let resolved = false;
     return new Promise((resolve, reject) => {
       this.traverse((method, fullPath, handler) => {
@@ -89,16 +89,23 @@ class Router {
   }
 
   register(scSocket) {
-    scSocket.on('#api', this.handleEvent.bind(this));
+    scSocket.on('#api', this._handleEvent.bind(this));
   }
 
-  handleEvent(data, callback) {
-    const plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
+  _handleEvent(data, callback) {
+    let plain = {};
+    if (data.dataType) {
+      plain = deserialize(this._pbRoot.lookupType(data.dataType), data.buffer);
+    }
 
-    this.find(data.method, data.resource)
+    return this._find(data.method, data.resource)
       .then(handler => handler(plain))
-      .then(({ dataType, data }) => {
-        const buffer = serialize(this._pbRoot.lookupType(dataType), data);
+      .then(({ dataType, responseData } = {}) => {
+        let buffer;
+        if (dataType) {
+          buffer = serialize(this._pbRoot.lookupType(dataType), responseData);
+        }
+
         callback(null, { dataType, buffer, isError: false });
       })
       .catch(err => {

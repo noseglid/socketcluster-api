@@ -12,11 +12,11 @@
     "test": "mocha"
   },
   "dependencies": {
+    "chai": "^4.1.1",
     "debug": "^3.0.0",
     "protobufjs": "^6.7.3"
   },
   "devDependencies": {
-    "expect.js": "^0.3.1",
     "mocha": "^3.3.0",
     "raw-loader": "^0.5.1",
     "sc-codec-protobuf": "^0.2.0",
