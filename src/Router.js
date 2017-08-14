@@ -90,6 +90,7 @@ class Router {
 
   register(scSocket) {
     scSocket.on('#api', this._handleEvent.bind(this));
+    this._scSocket = scSocket;
   }
 
   _handleEvent(data, callback) {
@@ -99,7 +100,7 @@ class Router {
     }
 
     return this._find(data.method, data.resource)
-      .then(handler => handler(plain))
+      .then(handler => handler(plain, this._scSocket))
       .then(({ dataType, responseData } = {}) => {
         let buffer;
         if (dataType) {
